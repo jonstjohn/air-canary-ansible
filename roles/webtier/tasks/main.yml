@@ -1,11 +1,11 @@
-- name: python - install pip
-  apt: pkg=python-pip
-
-- name: python - virtualenv
-  apt: pkg=python-virtualenv
-
-- name: python - install dev
-  apt: pkg=python-dev
+- apt: pkg={{ item }}
+  with_items:
+    - python-pip
+    - python-dev
+    - python-virtualenv
+    - build-essential
+    - git
+    - redis-server
 
 - name: python - pip upgrade
   pip: name=pip extra_args='--upgrade'
@@ -13,57 +13,84 @@
 - name: python - virtualenvwrapper
   pip: name=virtualenvwrapper
 
-- name: postgresql client
-  apt: pkg=postgresql-client
+- name: create www user user
+  user: name={{ username }} generate_ssh_key=yes createhome=yes password={{ webuser_password }} shell=/bin/bash groups=www-data
 
-- name: lib32z1-dev
-  apt: pkg=lib32z1-dev
+- name: copy ssh private key to .ssh directory
+  shell: echo "{{ ssh_private_key }}" > /home/ac/.ssh/id_rsa
 
-- name: uwsgi
-  pip: name=uwsgi
+- name: ensure correct permissions on private key file
+  file: path=/home/ac/.ssh/id_rsa owner=ac group=ac mode=0600
 
-- name: nginx
-  apt: pkg=nginx
+- name: copy ssh public key to .ssh directory
+  shell: echo "{{ ssh_public_key }}" > /home/ac/.ssh/id_rsa.pub
 
-- name: git
-  apt: pkg=git
+- name: ensure correct permissions on public key file
+  file: path=/home/ac/.ssh/id_rsa.pub owner=ac group=ac mode=0644
 
-- name: install uwsgi system wide
-  pip: name=uwsgi
+- name: Git checkout
+  sudo: yes
+  sudo_user: "{{ username }}"
+  git: repo=git@github.com:jonstjohn/air-canary-web.git dest=/home/ac/air-canary-web accept_hostkey=True version={{ git_branch }}
 
-- name: make sure {{ home_dir }}/logs exists
-  file: path={{ home_dir }}/logs state=directory owner={{ username }} group={{ username }}
+- name: Upgrade the virtualenv
+  sudo: yes
+  sudo_user: "{{ username }}"
+  pip: requirements=/home/ac/air-canary-web/requirements.txt virtualenv=/home/ac/Envs/air-canary-web
 
-- name: remove nginx default site
-  file: path=/etc/nginx/sites-enabled/default state=absent
 
-- name: copy nginx site file
-  template: src=nginx.j2 dest=/etc/nginx/sites-available/{{ project_name }}
 
-- name: symlink nginx site file
-  file: path=/etc/nginx/sites-enabled/{{ project_name }} src=/etc/nginx/sites-available/{{ project_name }} state=link
-
-# in code base
-#- name: copy uwsgi_params
-#  copy: src=uwsgi_params dest={{ home_dir }}
-
-- name: copy uwsgi.ini
-  template: src=uwsgi.ini.j2 dest={{ home_dir }}/uwsgi.ini
-
-- name: create uwsgi config directories
-  file: path=/etc/uwsgi/vassals state=directory
-
-- name: uwsgi symlink
-  file: path=/etc/uwsgi/vassals/uwsgi.ini src={{ home_dir }}/uwsgi.ini state=link
-
-- name: create uwsgi log file
-  file: path={{ wsgi_log_path }} state=touch owner=www-data group=adm
-
-- name: uwsgi upstart
-  template: src=uwsgi.conf.j2 dest=/etc/init/uwsgi.conf
-
-- name: restart nginx
-  service: name=nginx state=restarted
-
-- name: restart uwsgi
-  service: name=uwsgi state=restarted
+#- name: postgresql client
+#  apt: pkg=postgresql-client
+#
+#- name: lib32z1-dev
+#  apt: pkg=lib32z1-dev
+#
+#- name: uwsgi
+#  pip: name=uwsgi
+#
+#- name: nginx
+#  apt: pkg=nginx
+#
+#- name: git
+#  apt: pkg=git
+#
+#- name: install uwsgi system wide
+#  pip: name=uwsgi
+#
+#- name: make sure {{ home_dir }}/logs exists
+#  file: path={{ home_dir }}/logs state=directory owner={{ username }} group={{ username }}
+#
+#- name: remove nginx default site
+#  file: path=/etc/nginx/sites-enabled/default state=absent
+#
+#- name: copy nginx site file
+#  template: src=nginx.j2 dest=/etc/nginx/sites-available/{{ project_name }}
+#
+#- name: symlink nginx site file
+#  file: path=/etc/nginx/sites-enabled/{{ project_name }} src=/etc/nginx/sites-available/{{ project_name }} state=link
+#
+## in code base
+##- name: copy uwsgi_params
+##  copy: src=uwsgi_params dest={{ home_dir }}
+#
+#- name: copy uwsgi.ini
+#  template: src=uwsgi.ini.j2 dest={{ home_dir }}/uwsgi.ini
+#
+#- name: create uwsgi config directories
+#  file: path=/etc/uwsgi/vassals state=directory
+#
+#- name: uwsgi symlink
+#  file: path=/etc/uwsgi/vassals/uwsgi.ini src={{ home_dir }}/uwsgi.ini state=link
+#
+#- name: create uwsgi log file
+#  file: path={{ wsgi_log_path }} state=touch owner=www-data group=adm
+#
+#- name: uwsgi upstart
+#  template: src=uwsgi.conf.j2 dest=/etc/init/uwsgi.conf
+#
+#- name: restart nginx
+#  service: name=nginx state=restarted
+#
+#- name: restart uwsgi
+#  service: name=uwsgi state=restarted

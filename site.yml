@@ -1,7 +1,8 @@
 - hosts: all
+  remote_user: root
   vars:
     env: dev
   roles:
     - common
-    - dbtier
+#    - dbtier
     - webtier

@@ -42,7 +42,26 @@
 - name: Upgrade the virtualenv
   sudo: yes
   sudo_user: "{{ username }}"
-  pip: requirements=/home/ac/air-canary-web/requirements.txt virtualenv=/home/ac/Envs/air-canary-web
+  pip: requirements=/home/ac/air-canary-web/requirements.txt virtualenv={{ python_path }}
+
+
+
+
+
+- name: Copy additional .profile config
+  template: src=".profile.j2" dest="/home/ac/.profile_additions" owner={{ username }} group={{ username }}
+
+#- name: Copy config.cfg file
+#  template: src="config.cfg.j2" dest="/home/cw/config.cfg" owner={{ username }} group={{ username }}
+
+#- name: add virtualenvwrapper to path
+#  lineinfile: line=". /usr/local/bin/virtualenvwrapper.sh" dest="/home/cw/.profile"
+
+- name: add .profile_additions to .profile
+  lineinfile: line=". ~/.profile_additions" dest="/home/ac/.profile"
+
+
+
 
 - name: uwsgi
   pip: name=uwsgi

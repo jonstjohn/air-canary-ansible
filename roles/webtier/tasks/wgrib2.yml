@@ -1,0 +1,19 @@
+
+- name: make sure wgrib2 install directory exists
+  file: path={{ home_dir }}/install/wgrib2 state=directory owner={{ username }} group={{ username }}
+
+- name: download wgrib2
+  get_url: url=http://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v2.0.1 dest={{ home_dir }}/install/wgrib2/wgrib2.tgz.v2.0.1
+
+- name: unarchive wgrib2
+  unarchive: src={{ home_dir }}/install/wgrib2/wgrib2.tgz.v2.0.1 dest={{ home_dir }}/install/wgrib2 copy=false
+
+- shell: cd {{ home_dir }}/install/wgrib2/grib2; export CC=gcc; make
+  args:
+    creates: "{{ home_dir }}/install/wgrib2/grib2/wgrib2/wgrib2"
+
+- name: copy wgrib2
+  shell: rsync -ci {{ home_dir }}/install/wgrib2/grib2/wgrib2/wgrib2 /usr/local/bin/wgrib2
+  register: rsync_result
+  changed_when: "rsync_result.stdout != ''"
+

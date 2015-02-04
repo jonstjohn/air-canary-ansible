@@ -103,3 +103,4 @@
 - name: restart uwsgi
   service: name=uwsgi state=restarted
 
+- include: wgrib2.yml

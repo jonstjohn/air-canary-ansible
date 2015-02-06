@@ -1,23 +1,57 @@
-- name: Install python-pycurl for adding repository
-  apt: pkg=python-pycurl
+# file: roles/dbtier/tasks/main.yml
 
-- name: postgresql - add repository key
-  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+# Required for ansible to interact with postgres
+- apt: pkg=python-psycopg2
 
-- name: Add postgres repository
-  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main' state='present'
+- name: Install postgresql
+  sudo: yes
+  action: apt pkg={{ item }}
+  with_items:
+    - postgresql
+    - postgresql-contrib
 
-- name: Install postgresql server
-  apt: pkg=postgresql force=yes state=latest update_cache=yes
+- name: Setup postgres db
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: name=ac
 
-- name: Install postgresql dev
-  apt: pkg=libpq-dev
+- name: Setup postgres user
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: db=ac user=ac_web password={{ database_password }} role_attr_flags=CREATEDB
 
-- name: Install postgresql contrib
-  apt: pkg=postgresql-contrib force=yes state=present
+- name: Setup postgres to listen on other interfaces
+  lineinfile: dest=/etc/postgresql/9.3/main/postgresql.conf line="listen_addresses='*'"
 
-- name: postgresql - install psycopg2
-  apt: pkg=python-psycopg2
+- name: restart postgres
+  service: name=postgresql state=restarted
+
+
+
+
+
+
+
+#- name: Install python-pycurl for adding repository
+#  apt: pkg=python-pycurl
+#
+#- name: postgresql - add repository key
+#  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+#
+#- name: Add postgres repository
+#  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main' state='present'
+#
+#- name: Install postgresql server
+#  apt: pkg=postgresql force=yes state=latest update_cache=yes
+#
+#- name: Install postgresql dev
+#  apt: pkg=libpq-dev
+#
+#- name: Install postgresql contrib
+#  apt: pkg=postgresql-contrib force=yes state=present
+#
+#- name: postgresql - install psycopg2
+#  apt: pkg=python-psycopg2
 
 #- name: postgis
 #  apt: pkg=postgis
@@ -25,9 +59,9 @@
 #- name: postgresql - install postgis
 #  apt: pkg=postgresql-9.3-postgis-2.1
 
-- name: Restart postgresql server
-  service: name=postgresql state=started enabled=yes
-
+#- name: Restart postgresql server
+#  service: name=postgresql state=started enabled=yes
+#
 #- name: postgresql - create db
 #  sudo_user: postgres
 #  sudo: yes

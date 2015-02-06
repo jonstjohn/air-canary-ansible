@@ -44,6 +44,12 @@
   sudo_user: "{{ username }}"
   pip: requirements=/home/ac/air-canary-web/requirements.txt virtualenv={{ python_path }}
 
+- name: run application setup commands
+  sudo: yes
+  sudo_user: "{{ username }}"
+  django_manage: app_path=/home/ac/air-canary-web/aircanary command=migrate virtualenv={{ python_path }}
+  environment: env_vars
+
 - name: run Django collect static
   sudo: yes
   sudo_user: "{{ username }}"

@@ -1,0 +1,33 @@
+# Absolute or relative path to the 'celery' command:
+CELERY_BIN="/home/ac/Envs/ac/bin/celery"
+
+# App instance to use
+# comment out this line if you don't use an app
+CELERY_APP="aircanary"
+# or fully qualified:
+#CELERY_APP="proj.tasks:app"
+
+# Where to chdir at start.
+CELERYBEAT_CHDIR="/home/ac/air-canary-web/aircanary/"
+
+# Extra arguments to celerybeat
+CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"
+
+# %N will be replaced with the first part of the nodename.
+CELERYBEAT_LOG_FILE="/var/log/celery/celerybeat.log"
+CELERYBEAT_PID_FILE="/var/run/celery/celerybeat.pid"
+
+# Workers should run as an unprivileged user.
+#   You need to create this user manually (or you can choose
+#   a user/group combination that already exists, e.g. nobody).
+CELERYBEAT_USER="ac"
+CELERYBEAT_GROUP="ac"
+
+# If enabled pid and log directories will be created if missing,
+# and owned by the userid/group configured.
+CELERY_CREATE_DIRS=1
+
+{% for var_name, value in env_vars.iteritems() %}
+export {{ var_name }}="{{ value }}"
+{% endfor %}
+

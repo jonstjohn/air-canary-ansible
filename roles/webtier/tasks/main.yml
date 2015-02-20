@@ -114,3 +114,5 @@
   service: name=uwsgi state=restarted
 
 - include: wgrib2.yml
+
+- include: celery.yml

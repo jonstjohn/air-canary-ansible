@@ -1,0 +1,17 @@
+- name: Copy celery init script
+  copy: src="celeryd" dest="/etc/init.d/celeryd"
+
+- name: Copy celerybeat init script
+  copy: src="celerybeat" dest="/etc/init.d/celerybeat"
+
+- name: Copy celery config script
+  template: src="celeryd.j2" dest="/etc/default/celeryd"
+    
+- name: Copy celerybeat config script
+  template: src="celerybeat.j2" dest="/etc/default/celerybeat"
+
+- name: Restart celeryd
+  service: name=celeryd state=restarted
+
+- name: Restart celerybeat
+  service: name=celerybeat state=restarted

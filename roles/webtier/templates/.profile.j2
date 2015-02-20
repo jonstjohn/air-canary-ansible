@@ -2,5 +2,7 @@
 export {{ var_name }}={{ value }}
 {% endfor %}
 
+export PYTHONPATH={{ django_path }}:$PYTHONPATH
+
 . {{ python_path }}/bin/activate
 
